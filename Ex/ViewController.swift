@@ -7,44 +7,47 @@ import UIKit
 import CocoaAsyncSocket
 import UIKit
 import RMQClient
-
-
 import UIKit
-
 import RMQClient
 
+
+
 class ViewController: UIViewController {
+    @Published var company : String = ""
 
 
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.receiveLogs()
-        self.receiveLogs()
-        sleep(1)
-        self.emitLog()
+        
+      
+
+        
+            self.receiveLogs(company: "yangcompany1")
+            self.receiveLogs(company: "yangcompany1")
+            sleep(1)
+            self.emitLog(company: "yangcompany1")
+        
+        
+        
     }
         func createConnection() -> RMQConnection {
-//            let hostName = "112.219.138.170" // 호스트명
-//            let userName = "neo" // 유저 이름
-//            let password = "01579" // 비밀번호
-//            let virtualHost = "/" // 가상 호스트 (기본값인 "/"를 사용하려면 변경하지 마세요)
-    
-//            let uri = "amqp://\(userName):\(password)@\(hostName):5672\(virtualHost)"
+
 //        http://username:password@yoursitename.com
             let uri = "amqp://neo:01579@112.219.138.170:5672"
             let delegate = RMQConnectionDelegateLogger()
-            let connection = RMQConnection(uri:uri,delegate: delegate)
+            let connection = RMQConnection(/*uri:uri,*/delegate: delegate)
             return connection
         }
     
-    func emitLog() {
+    func emitLog(company : String) {
         
         let conn = createConnection()
         conn.start()
         let ch = conn.createChannel()
         let x = ch.fanout("logs")
         let msg = "Hello World!"
-        let q = ch.queue("neotest")
+        let q = ch.queue(company)
         ch.defaultExchange().publish(msg.data(using: .utf8)!,routingKey: q.name)
         
         
@@ -53,13 +56,13 @@ class ViewController: UIViewController {
        // conn.close()
     }
 
-    func receiveLogs() {
+    func receiveLogs(company : String) {
         let conn = createConnection()
         conn.start()
         let ch = conn.createChannel()
         
         let x = ch.fanout("logs")
-        let q = ch.queue("neotest")
+        let q = ch.queue(company)
         q.bind(x)
         print("Waiting for logs.")
         
@@ -67,13 +70,10 @@ class ViewController: UIViewController {
             print("Received \(String(data: message.body, encoding: String.Encoding.utf8)!)")
         })
         
-//                q.subscribe({(_ message: RMQMessage) -> Void in
-//                    if let messageString = String(data: message.body, encoding: .utf8) {
-//                        print("Received \(messageString)")
-//        
-//                    }
-//                })
+
     }
+    
+   
 }
 //
 //import UIKit
